@@ -1,0 +1,71 @@
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: code-merge-tool-frontend
+    ports:
+      - "1011:1010"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:1021/api
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - code-merge-network
+
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: code-merge-tool-backend
+    ports:
+      - "1021:1020"
+    environment:
+      - NODE_ENV=production
+      - PORT=1020
+      - MONGODB_URI=mongodb://mongodb:27017/code-merge-tool
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production-min-32-chars
+      - JWT_EXPIRES_IN=24h
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - SESSION_SECRET=your-super-secret-session-key-change-this-too-min-32-chars
+      - CORS_ORIGIN=http://localhost:1011
+      - LOG_LEVEL=info
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - ./temp:/app/temp
+      - ./repositories:/app/repositories
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - code-merge-network
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6-jammy
+    container_name: code-merge-tool-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=code-merge-tool
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    restart: unless-stopped
+    networks:
+      - code-merge-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  code-merge-network:
+    driver: bridge

@@ -1,0 +1,24 @@
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: code-merge-tool-frontend
+    ports:
+      - "1011:1010"
+    environment:
+      - NODE_ENV=production
+      - PORT=1010
+      - NEXT_PUBLIC_API_URL=http://localhost:1021/api
+      - NEXT_PUBLIC_APP_NAME=Code Merge Tool
+      - NEXT_PUBLIC_APP_VERSION=1.0.0
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    networks:
+      - frontend-network
+
+networks:
+  frontend-network:
+    driver: bridge

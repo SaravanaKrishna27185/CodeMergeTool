@@ -1,0 +1,35 @@
+# GitLab Connection Test Commands
+# Replace YOUR_TOKEN with your actual GitLab access token
+
+echo "=== Testing GitLab Connection ==="
+echo ""
+
+echo "1. Testing current URL (likely to fail):"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab/api/v4/user"
+echo ""
+
+echo "2. Testing with .com domain:"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab.com/api/v4/user"
+echo ""
+
+echo "3. Testing with common ports:"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab:8080/api/v4/user"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab:443/api/v4/user"
+echo ""
+
+echo "4. Testing with gitlab subpath:"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab/gitlab/api/v4/user"
+echo ""
+
+echo "5. Testing the specific project:"
+echo "curl -H \"Private-Token: YOUR_TOKEN\" https://radcab/api/v4/projects/intelligent-document-processing%2Fidp-solution"
+echo ""
+
+echo "=== Instructions ==="
+echo "1. Replace YOUR_TOKEN with your actual GitLab access token"
+echo "2. Run each curl command to see which URL format works"
+echo "3. The working URL format should be used in your GitLab Repo URL field"
+echo ""
+echo "Expected successful response: JSON with user information or project details"
+echo "404 error means: URL is incorrect or project doesn't exist"
+echo "401/403 error means: Token is invalid or insufficient permissions"

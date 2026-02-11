@@ -1,0 +1,74 @@
+version: "3.8"
+
+services:
+  # Frontend service (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "1011:1010"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:1021/api
+    depends_on:
+      - backend
+    networks:
+      - code-merge-network
+    restart: unless-stopped
+
+  # Backend service (Node.js/Express)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "1021:1020"
+    environment:
+      - NODE_ENV=production
+      - PORT=1020
+      - MONGODB_URI=mongodb://mongodb:27017/code-merge-tool
+      - CORS_ORIGIN=http://localhost:1011
+      - JWT_SECRET=${JWT_SECRET:-change-this-jwt-secret-min-32-chars-production}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-change-this-refresh-secret-min-32-chars-prod}
+      - SESSION_SECRET=${SESSION_SECRET:-change-this-session-secret-min-32-chars-production}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITLAB_CLIENT_ID=${GITLAB_CLIENT_ID}
+      - GITLAB_CLIENT_SECRET=${GITLAB_CLIENT_SECRET}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-saravana.krishna@radian.com}
+      - GIT_USER_NAME=${GIT_USER_NAME:-Saravana}
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/repositories:/app/repositories
+      - ./backend/uploads:/app/uploads
+      - ./backend/temp:/app/temp
+    networks:
+      - code-merge-network
+    restart: unless-stopped
+
+  # MongoDB database
+  mongodb:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=code-merge-tool
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - code-merge-network
+
+networks:
+  code-merge-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
